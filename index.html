@@ -2,8 +2,19 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://erfanr.github.io/turinbax-guides/">
+<meta property="og:title" content="راهنمای معامله امن یورو | TurinBax">
+<meta property="og:description" content="۹۰٪ کلاهبرداری‌های خرید و فروش یورو با یک قانون ساده قابل پیشگیریه. راهنمای کامل برای ایرانیان ایتالیا.">
+<meta property="og:image" content="https://erfanr.github.io/turinbax-guides/preview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="راهنمای معامله امن یورو | TurinBax">
+<meta name="twitter:description" content="۹۰٪ کلاهبرداری‌های خرید و فروش یورو با یک قانون ساده قابل پیشگیریه.">
+<meta name="twitter:image" content="https://erfanr.github.io/turinbax-guides/preview.jpg">
 <title>TurinBax</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -16,26 +27,32 @@
   --border:rgba(255,255,255,0.08);
 }
 
-html, body {
-  width:100%; height:100%;
-  overflow:hidden;
-  background:#0a0c0f;
-  font-family:'Vazirmatn',sans-serif;
-  direction:rtl;
-  /* prevent double-tap zoom */
-  
-  -webkit-user-select:none;
-  user-select:none;
+html {
+  height: 100%;
+  height: -webkit-fill-available;
+  overflow: hidden;
 }
 
-/* Full-viewport flex column — fills Telegram's WebView exactly */
 body {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding: 12px 12px 16px;
-  gap:10px;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: none;
+  background: #0a0c0f;
+  font-family: 'Vazirmatn', sans-serif;
+  direction: rtl;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  gap: 10px;
 }
 
 .carousel-wrap {
@@ -77,7 +94,7 @@ body {
   flex:1;
   min-height:0;
   position:relative;
-  touch-action:pan-y;
+  touch-action:none;
 }
 
 .slide {
@@ -155,6 +172,7 @@ body {
 }
 .nb:hover{background:var(--surface2);}
 .nb:disabled{opacity:.3;cursor:default;}
+.nb{touch-action:manipulation;}
 .cnt{font-size:13px;color:var(--muted);letter-spacing:.04em;direction:rtl;}
 </style>
 </head>
@@ -454,7 +472,6 @@ function onMove(e) {
   const dx = Math.abs(src.clientX - px);
   const dy = Math.abs(src.clientY - py);
   if (dx > 8 || dy > 8) moved = true;
-  if (dx > dy + 5 && e.cancelable) e.preventDefault();
 }
 function onUp(e) {
   if (!pdown) return;
@@ -474,7 +491,7 @@ function onUp(e) {
 ['touchstart','pointerdown'].forEach(ev =>
   stage.addEventListener(ev, onDown, {passive:true}));
 ['touchmove','pointermove'].forEach(ev =>
-  stage.addEventListener(ev, onMove, {passive:false}));
+  stage.addEventListener(ev, onMove, {passive:true}));
 ['touchend','pointerup'].forEach(ev =>
   stage.addEventListener(ev, onUp, {passive:true}));
 
