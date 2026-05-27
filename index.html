@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>TurinBax</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0F1115;--surface:#181C22;--surface2:#1E232B;
+  --text:#F5F5F0;--muted:#8B8F99;
+  --red:#FF4D4F;--red-dim:#3A1010;--red-border:rgba(255,77,79,0.22);
+  --green:#00C48C;--green-dim:#0A2E21;--green-border:rgba(0,196,140,0.22);
+  --border:rgba(255,255,255,0.08);
+}
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  background:#0a0c0f;
+  font-family:'Vazirmatn',sans-serif;
+  direction:rtl;
+  /* prevent double-tap zoom */
+  
+  -webkit-user-select:none;
+  user-select:none;
+}
+
+/* Full-viewport flex column — fills Telegram's WebView exactly */
+body {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding: 12px 12px 16px;
+  gap:10px;
+}
+
+.carousel-wrap {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  /* take all available height */
+  flex:1;
+  min-height:0;
+}
+
+/* Progress bar — RTL: fills from right */
+.prog-bar {
+  width:100%;
+  max-width:500px;
+  height:2px;
+  background:var(--border);
+  border-radius:2px;
+  overflow:hidden;
+  direction:rtl;
+}
+.prog-fill {
+  height:100%;
+  background:var(--red);
+  border-radius:2px;
+  transition:width .3s ease;
+  /* anchored to right side */
+  margin-right:0;
+  margin-left:auto;
+  float:right;
+}
+
+/* Stage fills remaining space, keeps 4:5 ratio but never overflows */
+.stage {
+  width:100%;
+  max-width:500px;
+  flex:1;
+  min-height:0;
+  position:relative;
+  touch-action:pan-y;
+}
+
+.slide {
+  display:none;
+  position:absolute;
+  inset:0;
+  background:var(--bg);
+  border-radius:16px;
+  border:1px solid var(--border);
+  flex-direction:column;
+  padding:4.5% 6%;
+  overflow:hidden;
+}
+.slide.active{display:flex;}
+
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6%;flex-shrink:0;}
+.snum{font-size:clamp(10px,3vw,13px);color:var(--muted);direction:rtl;letter-spacing:.04em;opacity:.6;}
+.brand-tag{font-size:clamp(10px,3vw,13px);color:var(--muted);opacity:.45;}
+
+.body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:3.5%;min-height:0;}
+
+.tag{
+  display:inline-block;width:fit-content;align-self:flex-start;
+  font-size:clamp(12px,3.5vw,17px);font-weight:700;
+  padding:.32em .7em;border-radius:6px;letter-spacing:.06em;
+}
+.tag-r{background:var(--red-dim);color:var(--red);}
+.tag-g{background:var(--green-dim);color:var(--green);}
+
+.slide-label{font-size:clamp(20px,5.5vw,36px);font-weight:900;color:var(--text);line-height:1.25;}
+.slide-label .ac{color:var(--red);}
+.slide-label .ag{color:var(--green);}
+
+.divider{width:28px;height:3px;background:var(--red);border-radius:2px;flex-shrink:0;}
+.divider-g{width:28px;height:3px;background:var(--green);border-radius:2px;flex-shrink:0;}
+.sub{font-size:clamp(11px,3vw,15px);color:var(--muted);line-height:1.75;}
+.bignum{font-size:clamp(48px,12vw,80px);font-weight:900;color:var(--red);line-height:1;direction:ltr;}
+
+.scenario{background:var(--red-dim);border:1px solid var(--red-border);border-radius:10px;padding:3.5% 4.5%;}
+.sc-head{font-size:clamp(9px,2.5vw,12px);font-weight:700;color:var(--red);letter-spacing:.08em;margin-bottom:.45em;}
+.sc-text{font-size:clamp(10px,2.8vw,14px);color:#f5a0a1;line-height:1.7;}
+
+.rulebox{background:var(--green-dim);border:1px solid var(--green-border);border-radius:10px;padding:3.5% 4.5%;}
+.rb-head{font-size:clamp(9px,2.5vw,12px);font-weight:700;color:var(--green);letter-spacing:.08em;margin-bottom:.45em;}
+.rb-text{font-size:clamp(10px,2.8vw,14px);color:#5be8bd;line-height:1.7;}
+
+.pill-row{display:flex;flex-wrap:wrap;gap:.35rem;flex-direction:row-reverse;}
+.pill{background:var(--red-dim);border:1px solid var(--red-border);border-radius:20px;font-size:clamp(9px,2.5vw,12px);padding:.28em .85em;color:var(--red);}
+
+.checklist{display:flex;flex-direction:column;gap:.5rem;}
+.ci{display:flex;align-items:flex-start;gap:.5rem;font-size:clamp(10px,2.8vw,14px);color:var(--text);line-height:1.5;}
+.ci-icon{color:var(--green);flex-shrink:0;font-size:clamp(10px,2.8vw,14px);}
+
+.cta-big{font-size:clamp(20px,5.5vw,36px);font-weight:900;color:var(--green);line-height:1.2;}
+.cta-sub{font-size:clamp(11px,3vw,15px);color:var(--muted);line-height:1.65;}
+
+.footer{margin-top:auto;padding-top:3%;font-size:clamp(9px,2vw,11px);color:var(--muted);opacity:.3;text-align:center;flex-shrink:0;}
+.tb-link{color:inherit;text-decoration:none;cursor:pointer;}
+
+/* Dots — RTL: slide 1 dot on the right, progress fills rightward */
+.dots{
+  display:flex;
+  gap:5px;
+  flex-direction:row-reverse; /* first dot on right */
+}
+.dot{width:6px;height:6px;border-radius:3px;background:var(--muted);opacity:.3;transition:all .2s;cursor:pointer;}
+.dot.active{opacity:1;background:var(--red);width:18px;}
+
+/* Nav row — buttons keep LTR positions, but LEFT button = NEXT, RIGHT button = PREV */
+.nav-row{display:flex;align-items:center;gap:1rem;direction:ltr;}
+.nb{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:.95rem;
+  display:flex;align-items:center;justify-content:center;transition:background .15s;
+}
+.nb:hover{background:var(--surface2);}
+.nb:disabled{opacity:.3;cursor:default;}
+.cnt{font-size:13px;color:var(--muted);letter-spacing:.04em;direction:rtl;}
+</style>
+</head>
+<body>
+<div class="carousel-wrap">
+<div class="prog-bar"><div class="prog-fill" id="prog" style="width:8.33%"></div></div>
+<div class="stage" id="stage">
+
+<!-- S1 -->
+<div class="slide active" id="s1">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۱ / ۱۲</span></div>
+  <div class="body">
+    <div class="bignum">90٪</div>
+    <div class="slide-label">کلاهبرداری‌های خرید و فروش یورو فقط با <span class="ag">یک قانون ساده</span> قابل پیشگیریه</div>
+    <div class="divider"></div>
+    <div class="sub">راهنمای معامله امن </div>
+    <div class="sub" style="font-size:clamp(9px,2.5vw,11px);opacity:.6;">خیلی‌ها فکر می‌کنن «برای من اتفاق نمی‌افته» تا وقتی که حسابشون بلاک میشه.</div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S2 --
+<div class="slide" id="s2">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۲ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-g">قانون طلایی</div>
+    <div class="slide-label">فقط با حسابی معامله کن که <span class="ag">دقیقاً به اسم طرف معاملته</span></div>
+    <div class="divider-g"></div>
+    <div class="pill-row">
+      <span class="pill">حساب دوستش</span><span class="pill">حساب همسرش</span>
+      <span class="pill">حساب شریکش</span><span class="pill">واسطه / عامل</span>
+    </div>
+    <div class="sub">چون لحظه‌ای که اسم حساب با طرف معامله فرق می‌کنه، دیگه نمی‌دونی پول واقعاً دست کیه.</div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S3 -->
+<div class="slide" id="s3">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۳ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">سناریو</div>
+    <div class="slide-label">ریال فرستادی، <span class="ac">یورو نگرفتی</span></div>
+    <div class="scenario">
+      <div class="sc-head">چطور اتفاق می‌افته</div>
+      <div class="sc-text">«این کارت دوستمه، به این واریز کن» تو ریال می‌فرستی، طرف ناپدید میشه. اون حساب برای یه قربانی دیگه بوده.</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون</div>
+      <div class="rb-text">فقط به حسابی ریال بفرست که اسمش دقیقاً همون اسم طرف معاملته.</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S4 -->
+<div class="slide" id="s4">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۴ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">Chargeback</div>
+    <div class="slide-label">خطرناک‌ترین نوع — <span class="ac">حساب منفی</span></div>
+    <div class="scenario">
+      <div class="sc-head">چطور اتفاق می‌افته</div>
+      <div class="sc-text">یورو گرفتی، همه‌چیز عادی به نظر میاد… چند هفته بعد پول از حسابت برگشت میخوره و یا حسابت منفی میشه. چون پولی که دریافت کردی دزدی یا سیاه بوده.</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون</div>
+      <div class="rb-text">رسیدن پول به حسابت لزوماً به معنی امن بودن معامله نیست.<br>فقط از حسابی پول دریافت کن که اسمش دقیقاً همون اسم طرف معاملته.</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S5 -->
+<div class="slide" id="s5">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۵ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">بلاک حساب</div>
+    <div class="slide-label">چرا بانک <span class="ac">حسابت رو بلاک می‌کنه؟</span></div>
+    <div class="scenario">
+      <div class="sc-head">دلیل اصلی</div>
+      <div class="sc-text">Causale اشتباه؛ کلمات حساس مثل crypto یا transfer، یا پول از حساب فلگ‌ شده.</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون</div>
+      <div class="rb-text">خودت دقیق بگو داخل causale چی بنویسه. اگر چیزی غیر از توافق نوشته شد، پول رو همون لحظه برگردون.</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S6 -->
+<div class="slide" id="s6">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۶ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">خطر واسطه</div>
+    <div class="slide-label">با یک نفر حرف می‌زنی، پول از حساب <span class="ac">یکی دیگه</span> میاد</div>
+    <div class="scenario">
+      <div class="sc-head">چطور اتفاق می‌افته</div>
+      <div class="sc-text">آخرین لحظه میگه: «به این حساب بزن». از همین لحظه، کنترل معامله از دستت خارج میشه.</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون — بدون استثنا</div>
+      <div class="rb-text">فرستنده = طرف معامله &nbsp;|&nbsp; گیرنده = طرف معامله</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S7 -->
+<div class="slide" id="s7">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۷ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">نرخ مشکوک</div>
+    <div class="slide-label">نرخی که <span class="ac">زیادی خوبه</span></div>
+    <div class="scenario">
+      <div class="sc-head">سناریو</div>
+      <div class="sc-text">همه دارن ۲۰۰ معامله می‌کنن، یک نفر میگه «من ۱۹۰ میدم، فقط سریع انجام بده». همین عجله باید اولین زنگ خطر باشه.</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون</div>
+      <div class="rb-text">کلاهبردارها روی عجله و طمع حساب می‌کنن. هر چیزی که زیادی خوب به نظر میاد، معمولاً بی‌دلیل نیست.</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S8 -->
+<div class="slide" id="s8">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۸ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">تأخیر مشکوک</div>
+    <div class="slide-label">«فردا میفرستم»، <span class="ac">فردا نمیاد</span></div>
+    <div class="scenario">
+      <div class="sc-head">چطور اتفاق می‌افته</div>
+      <div class="sc-text">«الان موجود ندارم، فردا با نرخ بهتر برات می‌فرستم». نرخ بهتر فقط طعمه‌ایه که صبر کنی.</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون</div>
+      <div class="rb-text">معامله واقعی یعنی پول همین الان آماده باشه. هر تأخیر = ریسک بیشتر. حتی اگر طرف رو می‌شناسی.</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S9 -->
+<div class="slide" id="s9">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۹ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">اکانت فیک</div>
+    <div class="slide-label">اسم آشناست، عکس آشناست، <span class="ac">ولی کلاهبرداره</span></div>
+    <div class="scenario">
+      <div class="sc-head">چطور اتفاق می‌افته</div>
+      <div class="sc-text">اکانت آدم‌های واقعی رو کپی می‌کنن. چون فکر می‌کنی «می‌شناسمش»، گاردت پایین میاد.</div>
+    </div>
+    <div class="checklist">
+      <div class="ci"><span class="ci-icon">✅</span><span>آیدی تلگرام رو کامل چک کن</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>شماره موبایل بگیر و واتساپ چک کن</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>معامله رو داخل تلگرام انجام نده، کلاه‌بردار همه چت‌ها رو دو طرفه پاک میکنه</span></div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S10 -->
+<div class="slide" id="s10">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۱۰ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-r">تله اعتماد</div>
+    <div class="slide-label">چند بار سالم معامله کردن، <span class="ac">بعد ناپدید شدن</span></div>
+    <div class="scenario">
+      <div class="sc-head">چطور اتفاق می‌افته</div>
+      <div class="sc-text">اول اعتماد می‌سازن… بعد روی یک معامله بزرگ ناپدید میشن. «فقط این یک بارو اول یورو بزن»</div>
+    </div>
+    <div class="rulebox">
+      <div class="rb-head">قانون — بدون استثنا</div>
+      <div class="rb-text">کسی که خریداره، اول باید خودش بفرسته. هر بار. حتی اگر ۱۰ بار قبلش معامله کردین.</div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S11 -->
+<div class="slide" id="s11">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۱۱ / ۱۲</span></div>
+  <div class="body">
+    <div class="tag tag-g">چک‌لیست نهایی</div>
+    <div class="slide-label" style="font-size:clamp(18px,4.5vw,30px);">قبل از هر معامله بپرس:</div>
+    <div class="checklist">
+      <div class="ci"><span class="ci-icon">✅</span><span>اسم حساب دقیقاً با طرف معامله یکیه؟</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>پول همین الان آماده‌ست؟</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>نرخ منطقیه یا زیادی خوبه؟</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>آیدی تلگرام رو کامل چک کردی؟</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>Causale رو خودت مشخص کردی؟</span></div>
+      <div class="ci"><span class="ci-icon">✅</span><span>هیچ واسطه‌ای وسط نیست؟</span></div>
+    </div>
+    <div class="sub" style="color:#FF4D4F;font-size:clamp(10px,2.5vw,13px);">اگر حتی یکی از اینا مشکل داشت، معامله نکن.</div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+<!-- S12 -->
+<div class="slide" id="s12">
+  <div class="top-bar"><span class="brand-tag"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></span><span class="snum">۱۲ / ۱۲</span></div>
+  <div class="body" style="justify-content:space-between;">
+    <div>
+      <div class="tag tag-g">اشتراک‌گذاری</div>
+      <div style="font-size:clamp(32px,8vw,52px);margin:.5rem 0 .25rem;">🔖</div>
+      <div class="cta-big">این پست رو ذخیره کن</div>
+      <div class="cta-sub" style="margin-top:.4rem;">شاید بعداً جلوی از دست رفتن چند هزار یورو رو بگیره.</div>
+    </div>
+    <div>
+      <div class="divider-g" style="margin-bottom:.6rem;"></div>
+      <div class="cta-sub">برای هر ایرانیِ ایتالیا بفرست 🇮🇹</div>
+      <div class="cta-sub" style="margin-top:.25rem;opacity:.6;font-size:clamp(9px,2.5vw,12px);">شاید دقیقاً قبل از یک اشتباه بزرگ به دستش برسه.</div>
+    </div>
+    <div style="background:#181C22;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:.5rem .9rem;text-align:center;">
+      <div style="font-size:clamp(13px,3.5vw,18px);font-weight:700;color:#F5F5F0;"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+    </div>
+  </div>
+  <div class="footer"><a href="https://t.me/TurinBax" class="tb-link" target="_blank">TurinBax@</a></div>
+</div>
+
+</div><!-- /stage -->
+
+<div class="dots" id="dots"></div>
+
+<!-- LEFT button = NEXT (→), RIGHT button = PREV (←) — RTL convention -->
+<div class="nav-row">
+  <button class="nb" id="btnNext" onclick="go(1)" ontouchend="event.preventDefault();go(1)">←</button>
+  <span class="cnt" id="cnt">۱ / ۱۲</span>
+  <button class="nb" id="btnPrev" onclick="go(-1)" ontouchend="event.preventDefault();go(-1)">→</button>
+</div>
+
+</div><!-- /carousel-wrap -->
+
+<script>
+const TOTAL = 12;
+let cur = 0;
+
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const labels = Array.from({length: TOTAL}, (_, i) => `${fa(i+1)} / ${fa(TOTAL)}`);
+
+const dotsEl   = document.getElementById('dots');
+const cntEl    = document.getElementById('cnt');
+const prog     = document.getElementById('prog');
+const stage    = document.getElementById('stage');
+const btnNext  = document.getElementById('btnNext');
+const btnPrev  = document.getElementById('btnPrev');
+
+// Build dots RTL order (flex-direction:row-reverse handles visual, array order stays 0→11)
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === TOTAL - 1 ? ' active' : '');
+  d.onclick = () => setSlide(i);
+  dotsEl.appendChild(d);
+}
+
+function setSlide(n) {
+  document.getElementById('s' + (cur+1)).classList.remove('active');
+  document.querySelectorAll('.dot')[TOTAL - 1 - cur].classList.remove('active');
+  cur = n;
+  document.getElementById('s' + (cur+1)).classList.add('active');
+  document.querySelectorAll('.dot')[TOTAL - 1 - cur].classList.add('active');
+  cntEl.textContent = labels[cur];
+  // Progress bar RTL: slide 1 = small fill on RIGHT side
+  prog.style.width = ((cur+1) / TOTAL * 100) + '%';
+  // LEFT button = next; disable at last slide
+  btnNext.disabled = cur === TOTAL - 1;
+  // RIGHT button = prev; disable at first slide
+  btnPrev.disabled = cur === 0;
+}
+
+function go(d) {
+  const n = cur + d;
+  if (n >= 0 && n < TOTAL) setSlide(n);
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft')  go(1);
+  if (e.key === 'ArrowRight') go(-1);
+});
+
+// Pointer/touch swipe + tap — works in Telegram WebView
+// Uses both touchstart and pointerdown so one always fires
+let px = 0, py = 0, pdown = false, moved = false;
+
+function onDown(e) {
+  const src = e.touches ? e.touches[0] : e;
+  px = src.clientX; py = src.clientY;
+  pdown = true; moved = false;
+}
+function onMove(e) {
+  if (!pdown) return;
+  const src = e.touches ? e.touches[0] : e;
+  const dx = Math.abs(src.clientX - px);
+  const dy = Math.abs(src.clientY - py);
+  if (dx > 8 || dy > 8) moved = true;
+  if (dx > dy + 5 && e.cancelable) e.preventDefault();
+}
+function onUp(e) {
+  if (!pdown) return;
+  pdown = false;
+  const src = e.changedTouches ? e.changedTouches[0] : e;
+  const dx = src.clientX - px;
+  const dy = Math.abs(src.clientY - py);
+  if (moved && Math.abs(dx) >= 35 && Math.abs(dx) > dy) {
+    // Swipe: right=next, left=prev (RTL)
+    go(dx > 0 ? 1 : -1);
+  } else if (!moved || (Math.abs(dx) < 10 && dy < 10)) {
+    // Tap: left half=next, right half=prev (RTL)
+    go(src.clientX < window.innerWidth / 2 ? 1 : -1);
+  }
+}
+
+['touchstart','pointerdown'].forEach(ev =>
+  stage.addEventListener(ev, onDown, {passive:true}));
+['touchmove','pointermove'].forEach(ev =>
+  stage.addEventListener(ev, onMove, {passive:false}));
+['touchend','pointerup'].forEach(ev =>
+  stage.addEventListener(ev, onUp, {passive:true}));
+
+setSlide(0);
+</script>
+</body>
+</html>
